@@ -426,28 +426,20 @@ function addUrlInputForm() {
 	multiDownloadBtn.addEventListener('click', async () => {
 		const urls = multiUrlTextArea.value.trim().split('\n').filter(url => url.trim() !== '');
 		if (urls.length > 0) {
-			await downloadMultipleImagesSequentially(urls);
+			const uploadSuccess = await downloadMultipleImagesSequentially(urls);
 			multiUrlTextArea.value = '';
+
+			// Nếu có ít nhất một ảnh tải thành công, refresh trang sau 2 giây
+			if (uploadSuccess) {
+				setTimeout(() => {
+					showNotification('Cập nhật trang để hiển thị ảnh mới...');
+					setTimeout(() => {
+						window.location.reload();
+					}, 1000);
+				}, 2000);
+			}
 		} else {
 			showNotification('Vui lòng nhập ít nhất một đường dẫn ảnh!', true);
-		}
-	});
-
-	multiInputContainer.appendChild(multiUrlTextArea);
-	multiInputContainer.appendChild(multiDownloadBtn);
-
-	// Xử lý sự kiện chuyển đổi giữa chế độ đơn và nhiều
-	singleModeRadio.addEventListener('change', () => {
-		if (singleModeRadio.checked) {
-			singleInputContainer.style.display = 'flex';
-			multiInputContainer.style.display = 'none';
-		}
-	});
-
-	multiModeRadio.addEventListener('change', () => {
-		if (multiModeRadio.checked) {
-			singleInputContainer.style.display = 'none';
-			multiInputContainer.style.display = 'flex';
 		}
 	});
 
@@ -462,7 +454,7 @@ function addUrlInputForm() {
 }
 
 // Hàm để thêm đường dẫn mới vào mảng imagePaths
-async function addImagePath(url, showMessages = true) {
+async function addImagePath(url, showMessages = true, isBatch = false) {
 	try {
 		// Add to the API
 		await api.addImage(url);
@@ -472,7 +464,7 @@ async function addImagePath(url, showMessages = true) {
 		imagePaths.push(url);
 
 		// Thông báo cho người dùng
-		if (showMessages) {
+		if (showMessages && !isBatch) {
 			showNotification('Đã thêm ảnh thành công!');
 		}
 
@@ -483,13 +475,15 @@ async function addImagePath(url, showMessages = true) {
 		updateSky();
 
 		// Thêm mới: refresh trang sau khi thêm ảnh thành công
-		if (showMessages) {
+		// Chỉ refresh khi không phải là một phần của batch upload
+		if (showMessages && !isBatch) {
 			// Đợi 1.5 giây để người dùng thấy thông báo thành công trước khi refresh
 			setTimeout(() => {
 				window.location.reload();
 			}, 1500);
 		}
 
+		return true;
 	} catch (error) {
 		if (showMessages) {
 			showNotification('Có lỗi khi thêm ảnh!', true);
@@ -555,17 +549,37 @@ async function updateImageGallery() {
 	}
 }
 
-// Hàm xóa ảnh
+// Cache for textures
+const textureCache = {};
+
+// Hàm xóa ảnh tối ưu
 async function removeImage(id) {
 	try {
+		// Lấy URL ảnh trước khi xóa để xóa khỏi cache
+		const images = await api.getImages();
+		const imageToDelete = images.find(img => img.id === id);
+
+		if (imageToDelete && imageToDelete.url && textureCache[ imageToDelete.url ]) {
+			// Xóa texture khỏi cache và giải phóng bộ nhớ GPU
+			const texture = textureCache[ imageToDelete.url ];
+			texture.dispose();
+			delete textureCache[ imageToDelete.url ];
+			console.log('Disposed texture from cache:', imageToDelete.url);
+		}
+
+		// Gọi API xóa ảnh
 		await api.deleteImage(id);
+
+		// Cập nhật gallery
 		await updateImageGallery();
+
+		// Thông báo
 		showNotification('Đã xóa ảnh!');
 
-		// Thêm mới: refresh trang sau khi xóa ảnh thành công
+		// Refresh trang sau khi xóa ảnh thành công
 		setTimeout(() => {
 			window.location.reload();
-		}, 1500); // Đợi 1.5 giây để người dùng thấy thông báo xóa thành công
+		}, 2000); // Đợi 2 giây để người dùng thấy thông báo xóa thành công
 
 	} catch (error) {
 		console.error('Error removing image:', error);
@@ -575,14 +589,24 @@ async function removeImage(id) {
 
 // Hàm khởi tạo upload widget của Cloudinary
 function initUploadWidget() {
+	// Hiển thị chú thích về số lượng ảnh tối đa
+	showNotification('Bạn có thể chọn tối đa 10 ảnh để tải lên', false);
+
 	return cloudinary.createUploadWidget(
 		{
 			cloudName: cloudinaryConfig.cloudName,
 			uploadPreset: cloudinaryConfig.uploadPreset,
 			sources: [ 'local', 'camera' ],
 			multiple: true, // Cho phép chọn nhiều ảnh cùng lúc
-			maxFiles: 10, // Tăng số lượng file tối đa được phép
+			maxFiles: 10, // Giới hạn tối đa 10 ảnh mỗi lần tải lên
 			maxFileSize: 5000000, // 5MB
+			text: {
+				en: {
+					menu: {
+						files: 'Tải lên tối đa 10 ảnh',
+					}
+				}
+			},
 			styles: {
 				palette: {
 					window: "#F5986E",
@@ -1868,7 +1892,10 @@ async function downloadMultipleImagesSequentially(urls) {
 
 	for (const url of urls) {
 		try {
-			await downloadAndUploadToCloudinary(url, false); // false để không hiển thị thông báo riêng cho từng ảnh
+			// Đánh dấu là batch upload để không refresh cho từng ảnh riêng lẻ
+			const blob = await downloadImageAsBlob(url);
+			const cloudinaryUrl = await uploadToCloudinary(blob);
+			await addImagePath(cloudinaryUrl, false, true); // true cho isBatch
 			successful++;
 			processed++;
 			showNotification(`Đang tải: ${processed}/${total} ảnh...`);
@@ -1879,7 +1906,11 @@ async function downloadMultipleImagesSequentially(urls) {
 		}
 	}
 
-	showNotification(`Đã tải xong ${successful}/${total} ảnh thành công!`, successful < total);
+	const allSuccess = successful === total;
+	showNotification(`Đã tải xong ${successful}/${total} ảnh thành công!`, !allSuccess);
+
+	// Chỉ trả về true nếu tất cả ảnh đều tải thành công
+	return successful > 0;
 }
 
 // Add image zoom functionality
