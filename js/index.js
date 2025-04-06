@@ -482,6 +482,14 @@ async function addImagePath(url, showMessages = true) {
 		// Tạo một đám mây mới với ảnh vừa thêm
 		updateSky();
 
+		// Thêm mới: refresh trang sau khi thêm ảnh thành công
+		if (showMessages) {
+			// Đợi 1.5 giây để người dùng thấy thông báo thành công trước khi refresh
+			setTimeout(() => {
+				window.location.reload();
+			}, 1500);
+		}
+
 	} catch (error) {
 		if (showMessages) {
 			showNotification('Có lỗi khi thêm ảnh!', true);
@@ -553,6 +561,12 @@ async function removeImage(id) {
 		await api.deleteImage(id);
 		await updateImageGallery();
 		showNotification('Đã xóa ảnh!');
+
+		// Thêm mới: refresh trang sau khi xóa ảnh thành công
+		setTimeout(() => {
+			window.location.reload();
+		}, 1500); // Đợi 1.5 giây để người dùng thấy thông báo xóa thành công
+
 	} catch (error) {
 		console.error('Error removing image:', error);
 		showNotification('Có lỗi khi xóa ảnh!', true);
