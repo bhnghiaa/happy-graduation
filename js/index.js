@@ -529,7 +529,10 @@ async function updateImageGallery() {
 			const deleteBtn = document.createElement('button');
 			deleteBtn.className = 'delete-img-btn';
 			deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-			deleteBtn.onclick = () => removeImage(image.id);
+			deleteBtn.onclick = (event) => {
+				event.stopPropagation(); // Stop event propagation to prevent zoom
+				removeImage(image.id);
+			};
 
 			imgContainer.appendChild(img);
 			imgContainer.appendChild(deleteBtn);
@@ -1871,6 +1874,12 @@ function setupImageZoom() {
 	if (!gallery) return;
 
 	gallery.addEventListener('click', function (e) {
+		// Check if the click was on the delete button or its icon
+		if (e.target.closest('.delete-img-btn')) {
+			// Don't zoom if delete button was clicked
+			return;
+		}
+
 		const imgContainer = e.target.closest('.gallery-img-container');
 		if (!imgContainer) return;
 
@@ -1919,44 +1928,90 @@ function setupImageZoom() {
 	});
 }
 
-function zoomImage(imageSrc) {
-	const modal = document.createElement('div');
-	modal.style.cssText = `
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(0,0,0,0.9);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 2000;
-		cursor: zoom-out;
-	`;
+// Function to reveal letter content with animation
+function revealLetterContent() {
+	const spans = document.querySelectorAll('.mail-popup .content span');
+	spans.forEach((span, index) => {
+		// Reset opacity first
+		span.style.opacity = 0;
 
-	const zoomedImg = document.createElement('img');
-	zoomedImg.src = imageSrc;
-	zoomedImg.style.cssText = `
-		max-width: 95%;
-		max-height: 95%;
-		object-fit: contain;
-		border: 2px solid white;
-		box-shadow: 0 0 20px rgba(0,0,0,0.5);
-	`;
-
-	modal.appendChild(zoomedImg);
-	document.body.appendChild(modal);
-
-	// Close modal on click
-	modal.onclick = () => modal.remove();
-
-	// Pause game when zooming
-	isPaused = true;
-
-	// Resume game when closing zoom
-	modal.addEventListener('click', () => {
-		isPaused = false;
-		showNotification('Game Resumed');
+		setTimeout(() => {
+			span.style.opacity = 1;
+		}, index * 30); // Speed up animation a bit
 	});
+
+	// Mark animation as played
+	localStorage.setItem('letterAnimationPlayed', 'true');
+	window.hasAnimationPlayed = true;
+	// Mark as authenticated for any code that might check this
+	window.hasBeenAuthenticated = true;
+}
+
+// Replace the original handleMailPopup function with a simpler version (no password)
+window.handleMailPopup = function () {
+	const popup = document.getElementById('mail-popup');
+
+	if (popup.classList.contains('active')) {
+		// If letter is already open, close it
+		popup.classList.remove('active');
+
+		// Reset spans opacity for next opening
+		const spans = document.querySelectorAll('.mail-popup .content span');
+		spans.forEach(span => {
+			span.style.opacity = 0;
+		});
+	} else {
+		// If letter is closed, open it and reveal content (no password required)
+		popup.classList.add('active');
+		revealLetterContent();
+	}
+};
+
+// Add close button functionality
+document.addEventListener('DOMContentLoaded', function () {
+	const closeBtn = document.querySelector('.mail-popup .close-btn');
+	if (closeBtn) {
+		closeBtn.addEventListener('click', function () {
+			const popup = document.getElementById('mail-popup');
+			popup.classList.remove('active');
+		});
+	}
+});
+
+// On DOMContentLoaded, override the handleMailPopup function in window
+document.addEventListener('DOMContentLoaded', function () {
+	// Ensure our implementation is active by overriding any other version
+	window.handleMailPopup = function () {
+		const popup = document.getElementById('mail-popup');
+
+		if (popup.classList.contains('active')) {
+			// If letter is already open, close it
+			popup.classList.remove('active');
+
+			// Reset spans opacity for next opening
+			const spans = document.querySelectorAll('.mail-popup .content span');
+			spans.forEach(span => {
+				span.style.opacity = 0;
+			});
+		} else {
+			// If letter is closed, open it and reveal content (no password required)
+			popup.classList.add('active');
+			revealLetterContent();
+		}
+	};
+
+	// Also make sure the mail icon uses our version
+	const mailIcon = document.getElementById('mail-icon');
+	if (mailIcon) {
+		// Remove any existing listeners by cloning the element
+		const newMailIcon = mailIcon.cloneNode(true);
+		mailIcon.parentNode.replaceChild(newMailIcon, mailIcon);
+
+		// Add our handler
+		newMailIcon.addEventListener('click', window.handleMailPopup);
+	}
+});
+
+function zoomImage(imageSrc) {
+	// ...existing code...
 }

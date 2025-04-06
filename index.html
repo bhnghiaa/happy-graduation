@@ -42,7 +42,7 @@
         top: 10px;
         left: 20px;
         width: 85%;
-        background: #86595330;
+        background: #8659537e;
         border-radius: 10px;
         box-shadow: 0 0 10px #f5986e;
         padding: 20px;
@@ -51,25 +51,60 @@
         opacity: 0;
         transition: opacity 0.5s ease;
         max-height: 80vh;
+        border: 1px solid rgba(242, 83, 70, 0.2);
       }
+
       .mail-popup.active {
         display: block;
         opacity: 1;
       }
+
       .mail-popup h2 {
         margin-top: 0;
+        color: #f25346;
+        text-align: center;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(242, 83, 70, 0.2);
+        padding-bottom: 8px;
       }
+
       .mail-popup .close-btn {
         position: absolute;
         top: 10px;
         right: 10px;
         font-size: 20px;
         cursor: pointer;
+        color: #f25346;
+        width: 24px;
+        height: 24px;
+        text-align: center;
+        line-height: 24px;
       }
+
+      .mail-popup .content {
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #333;
+      }
+
       .mail-popup .content span {
         display: inline-block;
-        opacity: 0;
-        transition: opacity 0.5s ease;
+        opacity: 0.3;
+        transition: opacity 0.8s ease;
+      }
+
+      .mail-popup .signature {
+        text-align: right;
+        margin-top: 15px;
+        font-style: italic;
+        color: #666;
+      }
+
+      /* Special styles for emoji */
+      .mail-popup .emoji {
+        font-size: 1.4em;
+        vertical-align: middle;
       }
 
       /* Upload Interface Styles */
@@ -285,9 +320,29 @@
         .mail-popup {
           width: 85%;
           left: 7.5%;
+          top: 15px;
           padding: 15px;
           font-size: 14px;
           max-height: 70vh;
+        }
+
+        .mail-popup h2 {
+          font-size: 1.2rem;
+          margin-bottom: 12px;
+          padding-bottom: 6px;
+        }
+
+        .mail-popup .content {
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+
+        .mail-popup .emoji {
+          font-size: 1.2em;
+        }
+
+        .mail-popup .signature {
+          margin-top: 12px;
         }
 
         .mail-icon {
@@ -469,8 +524,9 @@
         <i class="fas fa-envelope"></i>
       </div>
       <div id="mail-popup" class="mail-popup">
-        <div class="close-btn"></div>
+        <div class="close-btn"><i class="fas fa-times"></i></div>
         <div class="content" id="text-content"></div>
+        <div class="signature">06.04.2025</div>
       </div>
 
       <!-- Upload interface -->
@@ -559,44 +615,116 @@
     <script src="js/api.js"></script>
     <script src="js/index.js"></script>
     <script>
+      // Reset animation flag on page refresh
+      let hasAnimationPlayed = false;
+
+      // Clear the animation status from localStorage on page load
+      window.addEventListener("load", function () {
+        localStorage.removeItem("letterAnimationPlayed");
+      });
+
       function splitTextIntoSpans() {
         const textContent =
-          "Mấy nay suy nghĩ về NITC, về kết thúc của một hành trình, về các chặng đường đã đi qua.. Nếu không may mắn vào được ban HT, có lẽ sẽ không học hỏi được nhiều như vậy. Nếu không là thành viên của NITC, có lẽ những năm tháng sinh viên ngắn ngủi này sẽ tẻ nhạt hơn rất nhiều.. Một người khá là không tự tin về bản thân nên đã tự xây nên một hình tượng rụt rè ít nói, cảm thấy khó để kết bạn với người khác, dễ ovtk và cũng dễ.. trở nên im lặng. Khi mới vào clb mục đích đơn giản chỉ là học tập các kiến thức chuyên ngành để phục cho bản thân cho đến khi thấy những người khác chạy dl cùng nhau, làm việc cùng nhau, tổ chức sự kiện cùng nhau, chơi cùng nhau, lúc đó mới thấy mình đã lãng phí những trải nghiệm tuyệt vời như nào.. Năm vừa rồi không đóng góp gì cho clb nhiều nhưng cũng được tham gia mấy chuyến đi chơi, dù gần hay xa thì đó cũng là những chuyến đi thật tuyệt. Sau mỗi chuyến đi vẫn luôn muốn lưu trữ lại theo một cách “đặc biệt” nào đó (mượn code để tạo ra web như này :3), không biết đã là lần cuối chưa, không biết những người bạn sẽ ra sao.. đôi khi không biết kết quả sẽ ra sao nhưng dù sao cũng được trải qua quá trình tuyệt vời. “We write to taste life twice, in the moment and in retrospect” ";
+          "Alo aloo ..\nƠ hôm nay là ngày bạn tốt nghiệp r à, mới ngày nào còn cùng tốt nghiệp chung lớp c3 mà nay được thấy bạn mặc áo cử nhân tốt nghiệp đại học r, bạn đỉnh vl 👏 Thật toẹt vời khi đc chứng kiến một cột mốc thành tựu mới của bạn, mong là trên chặng đường mới t sẽ đc chúc mừng nhiều hơn nữa nhá hâha 😆 Biết là đi làm lâu r nhưng nay mới chính thức Chúc mừng bạn bước tiếp chân đến con đường sự nghiệp, chúc công việc sắp tới thuận buồm xuôi gió ⛵️ mà có chút khó khăn thì nhớ lại xem có chuyện gì làm bạn k vượt qua đc đâu, kiểu gì cũng làm được thôi 💪 Vậy thôi chúc mừng tốt nghiệp chúc sớm thành đại gia haha";
         const contentDiv = document.getElementById("text-content");
-        const newHtml = textContent
-          .split("\n")
-          .map(
-            (line) =>
-              line
-                .split("")
-                .map((char) => `<span>${char === " " ? "&nbsp;" : char}</span>`)
-                .join("") + "<br>"
-          )
-          .join("");
+
+        // Helper function to check if a string is an emoji
+        function isEmoji(char) {
+          const emojiRegex =
+            /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+          return emojiRegex.test(char);
+        }
+
+        // Split by lines first
+        const lines = textContent.split("\n");
+        let newHtml = "";
+
+        // Process each line
+        for (const line of lines) {
+          // Use Array.from to correctly handle emoji and other special characters
+          const chars = Array.from(line);
+          const lineHtml = chars
+            .map((char) => {
+              if (char === " ") {
+                return "<span>&nbsp;</span>";
+              } else if (isEmoji(char)) {
+                return `<span class="emoji">${char}</span>`;
+              } else {
+                return `<span>${char}</span>`;
+              }
+            })
+            .join("");
+
+          newHtml += lineHtml + "<br>";
+        }
 
         contentDiv.innerHTML = newHtml;
+
+        // Set all spans to invisible by default (even if animation has played before)
+        const spans = document.querySelectorAll(".mail-popup .content span");
+        spans.forEach((span) => {
+          span.style.opacity = 0;
+        });
+
+        // Only make visible if we've properly authenticated
+        if (window.hasBeenAuthenticated === true) {
+          spans.forEach((span) => {
+            span.style.opacity = 1;
+          });
+        }
+
+        // If animation has already played, set all spans to visible immediately
+        if (hasAnimationPlayed) {
+          const spans = document.querySelectorAll(".mail-popup .content span");
+          spans.forEach((span) => {
+            span.style.opacity = 1;
+          });
+        }
       }
 
+      // Simple popup toggle without password verification
       function handleMailPopup() {
         const popup = document.getElementById("mail-popup");
-        popup.classList.toggle("active");
 
-        const spans = document.querySelectorAll(".mail-popup .content span");
         if (popup.classList.contains("active")) {
-          spans.forEach((span, index) => {
-            setTimeout(() => {
-              span.style.opacity = 1;
-            }, index * 100);
-          });
-        } else {
+          // Close letter
+          popup.classList.remove("active");
+
+          // Reset spans for next opening
+          const spans = document.querySelectorAll(".mail-popup .content span");
           spans.forEach((span) => {
             span.style.opacity = 0;
           });
+        } else {
+          // Open letter
+          popup.classList.add("active");
+
+          // Animate letter content
+          const spans = document.querySelectorAll(".mail-popup .content span");
+          spans.forEach((span, index) => {
+            setTimeout(() => {
+              span.style.opacity = 1;
+            }, index * 30);
+          });
+
+          // Mark as played
+          hasAnimationPlayed = true;
         }
       }
 
       // Make handleMailPopup available globally
       window.handleMailPopup = handleMailPopup;
+
+      // Add reset animation function for testing
+      window.resetLetterAnimation = function () {
+        localStorage.removeItem("letterAnimationPlayed");
+        hasAnimationPlayed = false;
+        const spans = document.querySelectorAll(".mail-popup .content span");
+        spans.forEach((span) => {
+          span.style.opacity = 0;
+        });
+        console.log("Letter animation has been reset!");
+      };
 
       document
         .getElementById("mail-icon")
@@ -612,6 +740,12 @@
           e.preventDefault();
           handleMailPopup();
         });
+
+        // Close button functionality
+        const closeBtn = document.querySelector(".mail-popup .close-btn");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", handleMailPopup);
+        }
 
         // Close popup with touch outside
         document.addEventListener("touchstart", function (e) {
@@ -634,6 +768,25 @@
             }
           };
         }
+
+        // Fix position on iOS devices by checking window dimensions on load
+        function adjustForMobileDevices() {
+          const windowWidth = window.innerWidth;
+          const popup = document.getElementById("mail-popup");
+
+          if (windowWidth <= 428) {
+            // iPhone 12 and similar devices
+            popup.style.width = "85%";
+            popup.style.left = "7.5%";
+          } else {
+            popup.style.width = "85%";
+            popup.style.left = "20px";
+          }
+        }
+
+        // Call on page load and resize
+        adjustForMobileDevices();
+        window.addEventListener("resize", adjustForMobileDevices);
       });
     </script>
   </body>
