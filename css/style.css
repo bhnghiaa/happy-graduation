@@ -1,0 +1,301 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  touch-action: none;
+}
+
+#world {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(#e4e0ba, #f7d9aa);
+}
+
+/* Media queries for responsive design */
+@media only screen and (max-width: 428px) {
+  /* iPhone 12 and similar devices */
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Fix for iOS height issue */
+@supports (-webkit-touch-callout: none) {
+  body,
+  #world {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Add Track Dialog */
+.add-track-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+}
+
+.dialog-content {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dialog-content h3 {
+  margin: 0 0 20px;
+  color: #23190f;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.dialog-buttons button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.dialog-buttons button:hover {
+  transform: translateY(-2px);
+}
+
+.cancel-btn {
+  background: #ddd;
+  color: #666;
+}
+
+.save-btn {
+  background: #68c3c0;
+  color: white;
+}
+
+/* Playlist Item Hover Effects */
+.playlist-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.playlist-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(104, 195, 192, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.playlist-item:hover::before {
+  left: 100%;
+}
+
+/* Enhanced Playlist Item Styles */
+.playlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 5px;
+}
+
+.playlist-item:hover {
+  background: rgba(104, 195, 192, 0.15);
+}
+
+.playlist-item.active {
+  background: rgba(104, 195, 192, 0.25);
+}
+
+.track-controls {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.playlist-item:hover .track-controls {
+  opacity: 1;
+}
+
+.delete-track-btn {
+  background: none;
+  border: none;
+  color: #f25346;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.delete-track-btn:hover {
+  background-color: rgba(242, 83, 70, 0.1);
+  transform: scale(1.1);
+}
+
+.empty-playlist {
+  text-align: center;
+  color: #666;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+/* Music Player Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.control-btn:active {
+  animation: pulse 0.3s ease;
+}
+
+/* Progress Bar Enhancement */
+.progress-container {
+  cursor: pointer;
+  position: relative;
+}
+
+.progress-container:hover .progress-bar {
+  height: 6px;
+  background: linear-gradient(to right, #68c3c0, #5ab8b5);
+}
+
+.progress-container:hover::after {
+  content: "";
+  position: absolute;
+  right: calc(100% - var(--progress));
+  top: 50%;
+  transform: translate(50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #68c3c0;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile Optimization */
+@media (max-width: 428px) {
+  .music-player {
+    width: 90%;
+    right: 5%;
+  }
+
+  .dialog-content {
+    width: 95%;
+    padding: 20px;
+  }
+}
+
+/* Add styles for file upload */
+.method-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.method-btn {
+  padding: 8px 15px;
+  border: 1px solid #68c3c0;
+  background: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #68c3c0;
+  transition: all 0.3s ease;
+}
+
+.method-btn.active {
+  background: #68c3c0;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+#track-file {
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#track-file::-webkit-file-upload-button {
+  background: #68c3c0;
+  border: none;
+  padding: 8px 15px;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Fix iframe container for music player */
+#music-player iframe {
+  margin-bottom: 10px;
+  max-width: 100%;
+}
+
+/* Progress bar improvements */
+#progress-container {
+  cursor: pointer;
+}
+
+#progress-container:hover .progress-bar {
+  height: 6px;
+}
