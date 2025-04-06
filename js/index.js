@@ -590,7 +590,7 @@ async function removeImage(id) {
 // Hàm khởi tạo upload widget của Cloudinary
 function initUploadWidget() {
 	// Hiển thị chú thích về số lượng ảnh tối đa
-	showNotification('Bạn có thể chọn tối đa 10 ảnh để tải lên', false);
+	showNotification('Bạn có thể chọn tối đa 10 ảnh để tải lên 1 lần, tối đa 1000 cái 😀', false);
 
 	return cloudinary.createUploadWidget(
 		{
