@@ -603,7 +603,7 @@ function initUploadWidget() {
 			text: {
 				en: {
 					menu: {
-						files: 'Tải lên tối đa 10 ảnh',
+						files: 'Tải lên tối đa 10 ảnh 1 lần, tối đa 1000 cái 😀',
 					}
 				}
 			},
