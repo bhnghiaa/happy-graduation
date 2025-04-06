@@ -708,8 +708,9 @@ Cloud = function () {
 			var imageHeight = texture.image.height || 300;
 			var aspectRatio = imageWidth / imageHeight;
 
-			// Tạo geometry với tỉ lệ khung hình chính xác
-			var geom = new THREE.PlaneGeometry(50 * aspectRatio, 50, 1, 1); // Increase size for much better resolution
+			// Tạo geometry với tỉ lệ khung hình chính xác - adjusted for mobile
+			var baseSize = isMobile() ? 35 : 50; // Smaller base size on mobile
+			var geom = new THREE.PlaneGeometry(baseSize * aspectRatio, baseSize, 1, 1);
 
 			// Tạo vật liệu với kết cấu hình ảnh - Sử dụng MeshBasicMaterial để không bị ảnh hưởng bởi ánh sáng
 			var mat = new THREE.MeshBasicMaterial({
@@ -719,8 +720,8 @@ Cloud = function () {
 				color: 0xffffff, // Default color
 			});
 
-			// Tăng độ sáng bằng cách thay đổi giá trị màu
-			mat.color.setHSL(0, 0, 0.7); // Adjust the lightness (last parameter) to increase brightness
+			// Tăng độ sáng bằng cách thay đổi giá trị màu - adjusted for mobile
+			mat.color.setHSL(0, 0, deviceSettings.cloudBrightness); // Brighter on mobile
 
 			// Tạo mesh từ geometry và material
 			var m = new THREE.Mesh(geom, mat);
@@ -740,9 +741,10 @@ Cloud = function () {
 			m.rotation.z = Math.PI * 2 + 135;
 			m.rotation.y = 0;
 
-			// Đặt tỉ lệ
-			var s = 1 + Math.random() * 2;  // Reduced scale range for clearer images
-			m.scale.set(s, s, s);
+			// Đặt tỉ lệ - Adjusted for mobile
+			var baseScale = 1 + Math.random() * 2;
+			var scaleFactor = baseScale * deviceSettings.cloudScale;
+			m.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
 			// Thêm vào container
 			this.mesh.add(m);
@@ -759,8 +761,8 @@ Cloud = function () {
 Sky = function () {
 	this.mesh = new THREE.Object3D();
 
-	// Số lượng nhóm mây
-	this.nClouds = 62;
+	// Số lượng nhóm mây - now based on device settings
+	this.nClouds = deviceSettings.cloudsCount;
 
 	// Góc bước đều
 	var stepAngle = Math.PI * 2 / this.nClouds;
@@ -782,9 +784,10 @@ Sky = function () {
 		// Độ sâu ngẫu nhiên cho các đám mây trên trục z
 		c.mesh.position.z = -200 - Math.random() * 200;
 
-		// Tỉ lệ ngẫu nhiên cho mỗi đám mây
-		var s = 1 + Math.random() * 2;
-		c.mesh.scale.set(s, s, s);
+		// Tỉ lệ ngẫu nhiên cho mỗi đám mây - Adjusted for mobile
+		var baseScale = 1 + Math.random() * 2;
+		var scaleFactor = baseScale * deviceSettings.cloudScale;
+		c.mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
 		this.mesh.add(c.mesh);
 	}
@@ -1312,13 +1315,51 @@ function normalize(v, vmin, vmax, tmin, tmax) {
 
 }
 
+// Check if mobile device and adjust scene if needed
+function isMobile() {
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 600;
+}
+
+// Mobile optimization settings
+const mobileSettings = {
+	rotationSpeedMultiplier: 2.0,  // 2x faster rotation on mobile
+	cloudScale: 0.7,               // 30% smaller clouds
+	cloudBrightness: 0.9,          // Higher brightness (0-1 scale)
+	treesCount: 150,               // Fewer trees
+	cloudsCount: 30,               // Fewer clouds
+	flowersCount: 175              // Fewer flowers
+};
+
+// Desktop settings
+const desktopSettings = {
+	rotationSpeedMultiplier: 1.0,  // Normal rotation speed
+	cloudScale: 1.0,               // Normal cloud size
+	cloudBrightness: 0.7,          // Normal brightness
+	treesCount: 300,               // Normal number of trees
+	cloudsCount: 62,               // Normal number of clouds
+	flowersCount: 350              // Normal number of flowers
+};
+
+// Get settings based on device
+const deviceSettings = isMobile() ? mobileSettings : desktopSettings;
+
+// Optimize for mobile if needed
+if (isMobile()) {
+	// Reduce number of clouds and trees for better performance on mobile
+	Sky.prototype.nClouds = deviceSettings.cloudsCount;
+	Forest.prototype.nTrees = deviceSettings.treesCount;
+	Forest.prototype.nFlowers = deviceSettings.flowersCount;
+}
 
 function loop() {
 	if (!isPaused) {
-		land.mesh.rotation.z += .001;
-		orbit.mesh.rotation.z += .0002;
-		sky.mesh.rotation.z += .0007;
-		forest.mesh.rotation.z += .001;
+		// Adjust rotation speed based on device type
+		var speedMultiplier = deviceSettings.rotationSpeedMultiplier;
+
+		land.mesh.rotation.z += .001 * speedMultiplier;
+		orbit.mesh.rotation.z += .0002 * speedMultiplier;
+		sky.mesh.rotation.z += .0007 * speedMultiplier;
+		forest.mesh.rotation.z += .001 * speedMultiplier;
 	}
 
 	updatePlane();
@@ -1455,6 +1496,11 @@ function updateSky() {
 		newCloud.mesh.position.x = Math.cos(angle) * h;
 		newCloud.mesh.rotation.z = angle + Math.PI / 2;
 		newCloud.mesh.position.z = -200 - Math.random() * 200;
+
+		// Apply device-specific scale to the new cloud
+		var baseScale = 1 + Math.random() * 2;
+		var scaleFactor = baseScale * deviceSettings.cloudScale;
+		newCloud.mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
 		// Thêm đám mây mới vào sky
 		if (sky && sky.mesh) {
@@ -1871,6 +1917,11 @@ function setupImageZoom() {
 	if (!gallery) return;
 
 	gallery.addEventListener('click', function (e) {
+		// Don't zoom if clicking on delete button
+		if (e.target.closest('.delete-img-btn')) {
+			return;
+		}
+
 		const imgContainer = e.target.closest('.gallery-img-container');
 		if (!imgContainer) return;
 
